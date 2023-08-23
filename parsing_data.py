@@ -26,35 +26,31 @@ def url_pages(url: str, count_pages: int):
 
 def download_apartments(url: str, count_pages: int):
     list_url_pages = url_pages(url, count_pages)
-    j = 0
+
     general_list = []
+    heading_list = []
+
     for i in tqdm(list_url_pages, 'Extracting_Pages'):
+        if len(heading_list) == 0:
+            print('зашли')
+            heading_list = [t.text for t in i.findAll('td', class_='tht')]
+            area = heading_list[10: 13]
+            heading_list[4:4] = area
+            heading_list.pop(7)
+            del heading_list[12:]
+            heading_list.insert(0, 'blanc')
         for string in i.findAll('tr', class_='tbb'):
-            # print(string)
             # q = string.findAll('td', class_='ttx')
             param_list = [tag.text for tag in string.findAll('td', class_='ttx')]
             general_list.append(param_list)
-            # print(param_list)
-            # for col in string.findAll('td', class_='ttx'):
-                # q = col.findAll('td', class_='ttx')
-                # param_list = [tag.text for tag in q.findAll('td', class_='ttx')]
-                # print(param_list)
-            # print()
-            # print()
-    df = pd.DataFrame(general_list)
-    # print(df)
-    df.to_excel('apartments_2.xlsx')
+
+    df = pd.DataFrame(general_list, columns=heading_list)
+    # print(heading_list)
+    #
+    df.to_excel('apartments_3.xlsx')
     # for i in tqdm(list_url_pages, 'Extracting_Pages'):
     #     for string in i.findAll('tr', class_='tbb'):
     #         ttx = string.findAll('td', class_='ttx')
-    #         print(ttx)
-    #         print()
-    #         print()
-        # tbb = i.findAll('tr', class_='tbb')
-
-        # print(string)
-
-    # print((list_url_pages))
 
 
 def download_images(url: str, count_pages: int):
