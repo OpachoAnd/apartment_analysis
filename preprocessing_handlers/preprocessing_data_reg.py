@@ -5,7 +5,7 @@ import pandas as pd
 
 def preproc_excel(df: pd.DataFrame):
     df_copy = df.copy(deep=True)
-    df_copy = df_copy.drop(columns=['Unnamed: 0', 'blanc', 'Примечание', 'Телефон', 'E-mail'])
+    df_copy = df_copy.drop(columns=['Unnamed: 0', 'blanc', 'Примечание', 'Телефон', 'E-mail'])  # 'Unnamed: 0',
     # Удаление мусорных строк с пустыми значениями в данных столбцах
     df_copy = df_copy.dropna(subset=['Адрес', 'о', 'цена (т.р.)'])
     # Замена значений NaN на 'Пусто'

@@ -1,12 +1,13 @@
+import pickle
+
 from preprocessing_handlers.preprocessing_data_reg import preproc_excel
 from train_handlers.train_model_apartment import TrainModel
 import pandas as pd
-import joblib
 import numpy as np
 import json
+from db.requests_db import DBCommands
 
 from flask import Flask, request, redirect, flash, render_template
-from werkzeug.utils import secure_filename
 
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
@@ -15,21 +16,11 @@ N_THREADS = 4
 N_FOLDS = 5
 TARGET_NAME = 'TARGET'
 
-# train_model_reg = TrainModel(timeout=TIMEOUT,
-#                              test_size=TEST_SIZE,
-#                              random_state=RANDOM_STATE,
-#                              n_threads=N_THREADS,
-#                              n_folds=N_FOLDS)
-
-# train_model_class = TrainModel(timeout=TIMEOUT * 7,
-#                                test_size=TEST_SIZE,
-#                                random_state=RANDOM_STATE,
-#                                n_threads=N_THREADS,
-#                                n_folds=N_FOLDS)
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"A4Q8z\n\xec]/'
 
+db_commands = DBCommands()
 
 @app.route('/', methods=['GET', 'POST'])
 def main_page():
@@ -40,8 +31,12 @@ def main_page():
                                      random_state=RANDOM_STATE,
                                      n_threads=N_THREADS,
                                      n_folds=N_FOLDS)
+            df_from_bd = db_commands.get_model(model_id=1).data_df
 
-            df = pd.read_excel(r'apartments_3.xlsx')
+            df_bytes = json.loads(df_from_bd)
+            df = pd.DataFrame.from_dict(df_bytes)
+            print(df)
+            # df = pd.read_excel(r'apartments_3.xlsx')
             df = preproc_excel(df)
             type_task = request.form.get(key='type_task')
             if type_task == 'reg':
@@ -57,8 +52,11 @@ def reg_page():
     if request.method == 'POST':
         post_json = request.get_json()
         test = pd.DataFrame.from_dict(post_json)
-        model = joblib.load('model_reg.pkl')
-        return str(model.predict(test))
+
+        model_byte = db_commands.get_model(model_id=1).model_lama_reg
+        model = pickle.loads(model_byte)
+        # model = joblib.load('model_reg.pkl')
+        return {'Цена квартиры': str(model.predict(test)[0].data[0])}
     return 'not data'
 
 
@@ -67,10 +65,10 @@ def class_page():
     if request.method == 'POST':
         post_json = request.get_json()
         test = pd.DataFrame.from_dict(post_json)
-        model = joblib.load('model_class_2.pkl')
-        # print(test)
-        # return (test)
-        # return str(model.predict(test))
+        model_byte = db_commands.get_model(model_id=1).model_lama_class
+        model = pickle.loads(model_byte)
+        # model = joblib.load('model_class_2.pkl')
+
         mapping = model.reader.class_mapping
 
         def map_class(x):
@@ -80,17 +78,15 @@ def class_page():
         # mapped(train_data['target'].values)
         pred = model.predict(test)
         pred_list = pred[0].data
-        # print(type(pred_list))
-        # max_value = max(pred_list)
+
         max_index = pred_list.argmax()  # pred_list.index(max_value)
         # print(mapping[max_index])
-        print(max_index)
-        print(pred_list)
-        print(mapping)
+        # print(max_index)
+        # print(pred_list)
+        # print(mapping)
 
-        print(list(mapping.keys())[list(mapping.values()).index(max_index)])
-        # pred_np = np.ndarray(pred[0])
-        # print(pred)
+        return {'Район': list(mapping.keys())[list(mapping.values()).index(max_index)]}
+
     return 'not data'
 
 

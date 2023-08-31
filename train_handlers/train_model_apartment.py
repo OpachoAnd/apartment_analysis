@@ -10,6 +10,9 @@ from lightautoml.tasks import Task
 from sklearn.metrics import log_loss
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
+import pickle
+
+from db.requests_db import DBCommands
 
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
@@ -58,22 +61,8 @@ class TrainModel():
         train_data, test_data = train_test_split(df_copy,
                                                  test_size=self.test_size,
                                                  random_state=self.random_state)
-        # train_data, test_data = train_test(df, test_size=TEST_SIZE, random_state=RANDOM_STATE)
         print(f'Data is splitted. Parts sizes: train_data = {train_data.shape}, test_data = {test_data.shape}')
 
-        # task = Task('reg', loss='mae', metric='mae')
-        # roles = {'target': target_column,  # 'цена (т.р.)',
-        #          'category': ['Тип квартиры', 'Район', 'Адрес', 'Агентство', 'тип дома', 'Этаж', 'Всего этажей'],
-        #          'numeric': ['о', 'ж', 'к']}
-        #
-        # automl = TabularAutoML(task=task,
-        #                        timeout=self.timeout,
-        #                        cpu_limit=self.n_threads,
-        #                        reader_params={'n_jobs': self.n_threads,
-        #                                       'cv': self.n_folds,
-        #                                       'random_state': self.random_state})
-        # automl.fit_predict(train_data, roles=roles, verbose=1)
-        # test_pred = automl.predict(test_data)
         automl, out_of_fold_pred, test_pred, roles = self.model(task_name='reg',
                                                                 train_data=train_data,
                                                                 test_data=test_data,
@@ -81,7 +70,13 @@ class TrainModel():
                                                                 target_column=target_column)
 
         print(f'HOLDOUT score: {mean_absolute_error(test_data[roles["target"]].values, test_pred.data[:, 0])}')
-        joblib.dump(automl, 'model_reg.pkl')
+
+        model_dump = pickle.dumps(automl)
+        db_commands = DBCommands()
+        # db_commands.update_model_to_db(model_dump)
+        db_commands.update_model_reg_to_db(model_dump)
+
+        joblib.dump(automl, 'model_reg_new.pkl')
         return automl
 
     def train_class(self, df: pd.DataFrame, target_column: str, timeout):
@@ -94,20 +89,6 @@ class TrainModel():
                                                  shuffle=True)
         print(f'Data is splitted. Parts sizes: train_data = {train_data.shape}, test_data = {test_data.shape}')
 
-        # task = Task('multiclass')
-        # roles = {'target': target_column,
-        #          'category': ['Тип квартиры', 'Район', 'Адрес', 'Агентство', 'тип дома', 'Этаж', 'Всего этажей'],
-        #          'numeric': ['о', 'ж', 'к']}
-        #
-        # automl = TabularAutoML(task=task,
-        #                        timeout=self.timeout * 3,
-        #                        cpu_limit=self.n_threads,
-        #                        reader_params={'n_jobs': self.n_threads,
-        #                                       'cv': self.n_folds,
-        #                                       'random_state': self.random_state})
-        #
-        # out_of_fold_pred = automl.fit_predict(train_data, roles=roles, verbose=1)
-        # test_pred = automl.predict(test_data)
         automl, out_of_fold_pred, test_pred, roles = self.model(task_name='multiclass',
                                                                 train_data=train_data,
                                                                 test_data=test_data,
@@ -123,7 +104,13 @@ class TrainModel():
         mapped(train_data['target'].values)
 
         print(f'HOLDOUT score: {log_loss(mapped(test_data[roles["target"]].values), test_pred.data)}')
-        joblib.dump(automl, 'model_class_3.pkl')
+
+        model_dump = pickle.dumps(automl)
+        db_commands = DBCommands()
+        # db_commands.update_model_to_db(model_dump)
+        db_commands.update_model_class_to_db(model_dump)
+
+        joblib.dump(automl, 'model_class_new.pkl')
         return automl
 
 

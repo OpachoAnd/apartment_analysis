@@ -1,10 +1,12 @@
 from time import sleep
 
 import fake_useragent
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-import pandas as pd
+
+from db.requests_db import DBCommands
 
 USER_AGENT = fake_useragent.UserAgent()
 
@@ -16,10 +18,8 @@ def url_pages(url: str, count_pages: int):
             'User-Agent': USER_AGENT.random
         }
         session_requests = requests.Session()
-        # requests_content = session_requests.get(f'https://www.freepik.com/search?format=search&page={str(i)}&query=fabric%20care%20symbols&type=photo', headers=headers)
         requests_content = session_requests.get(f'http://citystar.ru/detal.htm?d=43&nm=%CE%E1%FA%FF%E2%EB%E5%ED%E8%FF+%2D+%CF%F0%EE%E4%E0%EC+%EA%E2%E0%F0%F2%E8%F0%F3+%E2+%E3%2E+%CC%E0%E3%ED%E8%F2%EE%E3%EE%F0%F1%EA%E5&pN={str(i)}', headers=headers)
         pages.append(BeautifulSoup(requests_content.content))
-        # print(type(BeautifulSoup(requests_content.content)))
         sleep(3)
     return pages
 
@@ -45,28 +45,19 @@ def download_apartments(url: str, count_pages: int):
             general_list.append(param_list)
 
     df = pd.DataFrame(general_list, columns=heading_list)
-    # print(heading_list)
-    #
-    df.to_excel('apartments_3.xlsx')
-    # for i in tqdm(list_url_pages, 'Extracting_Pages'):
-    #     for string in i.findAll('tr', class_='tbb'):
-    #         ttx = string.findAll('td', class_='ttx')
+    df.to_excel('apartments_new.xlsx')
 
-
-def download_images(url: str, count_pages: int):
-    list_url_pages = url_pages(url, count_pages)
-    j = 0
-    for i in tqdm(list_url_pages, 'Extracting_Pages'):
-        for img in i.findAll('img'):
-            img_url = img.attrs.get("data-src")
-            if img_url is not None:
-                p = requests.get(img_url)
-                out = open(f"C:/Users/opacho/Documents/dataset_CARE_LABEL/img_{str(j)}.jpg", "wb")
-                out.write(p.content)
-                out.close()
-                j += 1
+    return df
 
 
 if __name__ == "__main__":
-    download_apartments('url', count_pages=6)
-    # download_images('url', count_pages=12)
+    parse_df = download_apartments('url', count_pages=6)
+    # df = pd.read_excel(r'apartments_3.xlsx')
+    db_commands = DBCommands()
+
+    DBCommands.drop_tables()
+    DBCommands.create_tables()
+
+    df_byte = parse_df.to_json().encode()
+    # df_byte = df.to_json().encode()
+    db_commands.add_df_to_db(df_byte)

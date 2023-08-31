@@ -5,7 +5,6 @@ from sqlalchemy.orm import sessionmaker
 
 from db.config import ENGINE
 from db.models import Base, ML_table
-import io
 import sqlalchemy
 
 
@@ -49,9 +48,22 @@ class DBCommands:
         self.pool.add(ml_table)
         self.pool.commit()
 
+    def update_model_reg_to_db(self, model):
+        ml_table = self.get(ML_table, ml_table_id=1)
+        ml_table.model_lama_reg = model
+        self.pool.commit()
+
+    def update_model_class_to_db(self, model):
+        ml_table = self.get(ML_table, ml_table_id=1)
+        ml_table.model_lama_class = model
+        self.pool.commit()
+
     def get(self, model, **kwargs):
         instance = self.pool.query(model).filter_by(**kwargs).first()
         return instance if instance else None
+
+    # def get_df(self, ml_table_id):
+    #     pass
 
     def get_model(self, model_id):
         return self.get(ML_table, ml_table_id=model_id)
@@ -62,19 +74,20 @@ if __name__ == '__main__':
     # DBCommands.create_tables()
     db_commands = DBCommands()
 
-    towrite = io.BytesIO()
+    # towrite = io.BytesIO()
     df = pd.read_excel('/home/opacho/Документы/GitHub/apartment_analysis/apartments_3.xlsx')
     # df.to_excel(towrite, index=False)
     # towrite.seek(0)
     # bytes_data = towrite.getvalue()
 
-    df_byte = df.to_json().encode()
-    data = json.loads(df_byte)
-    q = pd.DataFrame.from_dict(data)
-    print(q)
+    # df_byte = df.to_json().encode()
+    # data = json.loads(df_byte)
+    # q = pd.DataFrame.from_dict(data)
+    # print(q)
+
     # db_commands.add_df_to_db(df_byte)
 
-
+    print(db_commands.get_model(model_id=1).data_df)
     # db_commands.add_text_to_db(text='hello ML')
     # q = db_commands.get_model(model_id=1)
     # print(q.model.tobytes())
