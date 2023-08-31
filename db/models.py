@@ -1,8 +1,6 @@
 from sqlalchemy import (
     Column,
-    Text,
     BigInteger,
-    ForeignKey
 )
 from sqlalchemy.dialects.postgresql import BYTEA
 
@@ -17,5 +15,3 @@ class ML_table(Base):
     model_lama_reg = Column('model_lama_reg', BYTEA)
     model_lama_class = Column('model_lama_class', BYTEA)
     data_df = Column('data_df', BYTEA)
-
-    # text_label = Column('text_label', Text)

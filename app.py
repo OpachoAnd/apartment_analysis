@@ -75,15 +75,12 @@ def class_page():
             return mapping[x]
 
         mapped = np.vectorize(map_class)
-        # mapped(train_data['target'].values)
+
         pred = model.predict(test)
         pred_list = pred[0].data
 
-        max_index = pred_list.argmax()  # pred_list.index(max_value)
-        # print(mapping[max_index])
-        # print(max_index)
-        # print(pred_list)
-        # print(mapping)
+        max_index = pred_list.argmax()
+
 
         return {'Район': list(mapping.keys())[list(mapping.values()).index(max_index)]}
 
@@ -92,34 +89,3 @@ def class_page():
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')
-
-    # df = pd.read_excel(r'apartments_3.xlsx')
-    # df = preproc_excel(df)
-
-    # print(df)
-
-    # train_model_reg.train_reg(df, 'цена (т.р.)')
-    # train_model_class.train_class(df, 'target')
-    # m = joblib.load('model_class_3.pkl')
-    # mapping = m.reader.class_mapping
-    #
-    # print(mapping)
-    # def map_class(x):
-    #     return mapping[x]
-
-
-    # mapped = np.vectorize(map_class)
-    # mapped(train_data['target'].values)
-
-# {
-#     "Тип квартиры": ["трехкомнатная"],
-#     "Район": ["пусто"],
-#     "Адрес": ["грязнова"],
-#     "Этаж": ["5"],
-#     "о": ["56.0"],
-#     "ж": ["40.0"],
-#     "к": ["6.0"],
-#     "Агентство": ["РиоЛюкс"],
-#     "тип дома": [""],
-#     "Всего этажей": ["5"]
-# }

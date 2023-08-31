@@ -67,31 +67,3 @@ class DBCommands:
 
     def get_model(self, model_id):
         return self.get(ML_table, ml_table_id=model_id)
-
-
-if __name__ == '__main__':
-    # Создание текущих таблиц при начале работы с базой данных
-    # DBCommands.create_tables()
-    db_commands = DBCommands()
-
-    # towrite = io.BytesIO()
-    df = pd.read_excel('/home/opacho/Документы/GitHub/apartment_analysis/apartments_3.xlsx')
-    # df.to_excel(towrite, index=False)
-    # towrite.seek(0)
-    # bytes_data = towrite.getvalue()
-
-    # df_byte = df.to_json().encode()
-    # data = json.loads(df_byte)
-    # q = pd.DataFrame.from_dict(data)
-    # print(q)
-
-    # db_commands.add_df_to_db(df_byte)
-
-    print(db_commands.get_model(model_id=1).data_df)
-    # db_commands.add_text_to_db(text='hello ML')
-    # q = db_commands.get_model(model_id=1)
-    # print(q.model.tobytes())
-
-    # table_names = sqlalchemy.inspect(ML_table)
-    # attr_names = [c_attr.key for c_attr in table_names.mapper.column_attrs]
-    # print(attr_names)
